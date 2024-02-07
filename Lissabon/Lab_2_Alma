@@ -1,0 +1,42 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import balanced_accuracy_score
+
+# Load in the dataset
+x_test_classification = np.load('Xtest_Classification1.npy')
+x_train_classification = np.load('Xtrain_Classification1.npy')
+y_train_classification = np.load('ytrain_Classification1.npy')
+
+# Reshaping and normalizing the dataset
+x_train_class_normalized = x_train_classification / 255.0
+x_train_class_normalized_reshaped = x_train_class_normalized.reshape(x_train_classification.shape[0], -1)
+x_test_class_normalized = x_test_classification / 255.0
+x_test_class_normalized_reshaped = x_test_class_normalized.reshape(x_test_classification.shape[0], -1)
+
+# Split the dataset into training
+X_train, X_temp, y_train, y_temp = train_test_split(x_train_class_normalized_reshaped, y_train_classification, test_size=0.3, random_state=39)
+
+# Split part of the training set into validation
+X_valid, X_test, y_valid, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=39)
+
+# Initialize RandomForest
+clf = RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=39)
+
+# Train the classifier
+clf.fit(X_train, y_train)
+
+# Validate the classifier
+y_valid_pred = clf.predict(X_valid)
+balanced_accuracy_valid = balanced_accuracy_score(y_valid, y_valid_pred)
+
+print(f'Validation Balanced Accuracy: {balanced_accuracy_valid}')
+
+# Test the classifier
+y_test_pred = clf.predict(X_test)
+balanced_accuracy_test = balanced_accuracy_score(y_test, y_test_pred)
+
+print(f'Test Balanced Accuracy: {balanced_accuracy_test}')
+
+
