@@ -62,7 +62,7 @@ df.describe() # Range of values
 # Calculate the distance and create a new column for it
 df['Distance'] = np.sqrt((df['near_x'] - df['xcoor'])**2 + (df['near_y'] - df['ycoor'])**2)
 
-# Define X and y for your model
+# Define X and y
 X = df.drop(['heard', 'near_x', 'xcoor', 'near_y', 'ycoor', 'near_angle', 'near_fid', 'building'], axis=1) # Leaving out target value, coordinates and near_angle that has a really low P-value and low impact
 y = df['heard']
 
@@ -77,7 +77,7 @@ print(results_X)
 kfold = StratifiedKFold(n_splits=10, random_state=42, shuffle=True)
 
 param_grid = {
-    'C': np.linspace(0.00001, 30, 20),
+    'C': np.linspace(0.01, 3.4, 1000),
     'penalty': ['l1', 'l2'],
     'solver': ['liblinear', 'saga']
 }
@@ -127,5 +127,30 @@ print(f"Nested CV Accuracy: {mean_accuracy:.4f} ± {std_accuracy:.4f}")
 print(f"Nested CV Precision_0: {mean_precision_0:.4f} ± {mean_precision_0:.4f}")
 print(f"Nested CV Precision_1: {mean_precision_1:.4f} ± {mean_precision_1:.4f}")
 
-# x_train_final = scaler.fit_transform(X)
-# optimal_regression_model = LogisticRegression
+## Train model with optimal hyperparameters
+
+# Load the test_data
+df = pd.read_csv('test_without_labels.csv')
+
+df['Distance'] = np.sqrt((df['near_x'] - df['xcoor'])**2 + (df['near_y'] - df['ycoor'])**2)
+
+# Define X test
+X_test = df.drop(['near_x', 'xcoor', 'near_y', 'ycoor', 'near_angle', 'near_fid', 'building'], axis=1) # Leaving out target value, coordinates and near_angle that has a really low P-value and low impact
+
+c = []
+for i in best_params_list:
+    c.append(i['C'])
+c_mean = np.mean(c)
+
+optimal_regression_model = LogisticRegression(C=c_mean, solver='liblinear', penalty='l1')
+optimal_regression_model.fit(X, y)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X)
+X_test_scaled = scaler.transform(X_test)
+
+y_test_pred = optimal_regression_model.predict(X_test_scaled)
+
+y_test_pred_df = pd.DataFrame(y_test_pred)
+
+y_test_pred_csv = y_test_pred_df.to_csv('predictions.csv')
