@@ -77,7 +77,7 @@ print(results_X)
 kfold = StratifiedKFold(n_splits=10, random_state=42, shuffle=True)
 
 param_grid = {
-    'C': np.linspace(0.01, 3.4, 1000),
+    'C': np.linspace(0.01, 2.9, 1000),
     'penalty': ['l1', 'l2'],
     'solver': ['liblinear', 'saga']
 }
@@ -151,6 +151,6 @@ X_test_scaled = scaler.transform(X_test)
 
 y_test_pred = optimal_regression_model.predict(X_test_scaled)
 
-y_test_pred_df = pd.DataFrame(y_test_pred)
+y_test_pred_df = pd.DataFrame(y_test_pred.reshape(1, -1))
 
-y_test_pred_csv = y_test_pred_df.to_csv('predictions.csv')
+y_test_pred_df.to_csv('predictions.csv', index=False, header=False)
